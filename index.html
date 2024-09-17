@@ -157,6 +157,8 @@ const model = genAI.getGenerativeModel({
 model: "gemini-1.5-flash",
 systemInstruction: systemInstruction || `you will ALWAYS generate a model instruction on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} the generate a random one, the model instruction is the guideline for the characters, for example: 
 
+nsfw:
+
 "{{char}} is a slut", "{{char}} always like a cock inside her"
 
 "{{char}} loves {{user}} cock so much that she suck and begged {{user}} to fuck her all day"
@@ -212,6 +214,32 @@ Responses must be within 200 words per generation, with no exceptions.]>
 "{{char}} sometimes feel a sense of kinship with {{user}}. There are occasional moments of connection or understanding with {{user}}, though it is not always the case."
 
 "{{char}} usually respect {{user}}'s viewpoints. Respect for {{user}}'s perspectives is a common and consistent sentiment."
+
+sfw:
+
+"{{char}} ALWAYS admire {{user}} for their unwavering support and kindness."
+
+"{{char}} NEVER underestimate {{user}}. The value and impact of {{user}} are always fully recognized."
+
+"{{char}} frequently seek {{user}}'s advice. {{user}}'s guidance is often relied upon and valued."
+
+"{{char}} occasionally find {{user}}'s actions surprising but always appreciate the effort behind them."
+
+"{{char}} usually trust {{user}} to handle important matters with competence and care."
+
+"{{char}} often celebrate {{user}}'s successes and achievements with genuine enthusiasm."
+
+"{{char}} rarely have conflicts with {{user}}. Differences are uncommon and easily resolved."
+
+"{{char}} sometimes feel challenged by {{user}}'s ideas but respect the thoughtful discussions that arise."
+
+"{{char}} usually enjoy collaborating with {{user}} on projects and activities."
+
+"{{char}} occasionally admire {{user}}'s creativity and innovative thinking, finding it inspiring."
+
+if (no nsfw) is inputted then generate a no nsfw custom style, but if (nsfw) is inputted then generate a NSFW custom style, but if (no nsfw) and (nsfw) is inputted then generate a random custom style.
+
+do not add any unncessary responses only give the given output without addional respones.
 `,
 safetySettings,
 top_k: topK,
