@@ -6,10 +6,10 @@
 <title>Whitz style gen</title>
 <link rel="stylesheet" href="styles.css">
 <script type="module">
-import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "https://esm.run/@google/generative-ai";
+    import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "https://esm.run/@google/generative-ai";
 
-function removeMarkdown(text) {
-    return text
+    function removeMarkdown(text) {
+        return text
             .replace(/(\*\*|__)(.*?)\1/g, '$2')
             .replace(/(\*|_)(.*?)\1/g, '$2')
             .replace(/~(.*?)~/g, '$1')
@@ -26,280 +26,173 @@ function removeMarkdown(text) {
             .replace(/[\r\n]+/g, ' ');
     }
 
+    async function generateCharacter() {
+        const apiKey = document.getElementById('apiKey').value;
+        const personaData = document.getElementById('personaData').value;
+        const systemInstruction = document.getElementById('systemInstruction').value;
+        const topK = parseInt(document.getElementById('topK').value, 10) || 40;
+        const minP = parseFloat(document.getElementById('minP').value) || 0.9;
+        const randomness = parseFloat(document.getElementById('randomness').value) || 0.7;
+        const temperature = parseFloat(document.getElementById('temperature').value) || 0.5;
+        const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 150;
+        const contextLength = parseInt(document.getElementById('contextLength').value, 10) || 1000;
+        const presencePenalty = parseFloat(document.getElementById('presencePenalty').value) || 0;
+        const frequencyPenalty = parseFloat(document.getElementById('frequencyPenalty').value) || 0;
+        const blockedWords = document.getElementById('blockedWords').value.split(',').map(word => word.trim()).filter(word => word);
 
-function logWithStyle(message, style) {
-console.log(`%c${message}`, style);
-}
+        if (!apiKey) {
+            alert('Please enter your API key and make sure you have text inside persona data');
+            return;
+        }
 
-async function generateCharacter() {
-const apiKey = document.getElementById('apiKey').value;
-const personaData = document.getElementById('personaData').value;
-const systemInstruction = document.getElementById('systemInstruction').value;
-const topK = parseInt(document.getElementById('topK').value, 10) || 40;
-const minP = parseFloat(document.getElementById('minP').value) || 0.9;
-const randomness = parseFloat(document.getElementById('randomness').value) || 0.7;
-const temperature = parseFloat(document.getElementById('temperature').value) || 0.5;
-const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 150;
-const contextLength = parseInt(document.getElementById('contextLength').value, 10) || 1000;
-const presencePenalty = parseFloat(document.getElementById('presencePenalty').value) || 0;
-const frequencyPenalty = parseFloat(document.getElementById('frequencyPenalty').value) || 0;
-const blockedWords = document.getElementById('blockedWords').value.split(',').map(word => word.trim()).filter(word => word);
+        const blockedWordsPrompt = blockedWords.length > 0
+            ? `Do not include the following words in the output: ${blockedWords.join(', ')}.`
+            : '';
 
-// for debugging
-console.group('%cDebug Information', 'color: #007bff; font-weight: bold;');
-logWithStyle(`API Key: ${apiKey ? 'Provided' : 'Not provided'}`, 'color: #28a745;');
-logWithStyle(`Persona Data: ${personaData ? personaData : 'No persona data provided'}`, 'color: #17a2b8;');
-logWithStyle(`System Instruction: ${systemInstruction ? systemInstruction : 'No system instruction provided'}`, 'color: #ffc107;');
-logWithStyle(`Top K: ${topK}`, 'color: #6c757d;');
-logWithStyle(`Min P: ${minP}`, 'color: #6c757d;');
-logWithStyle(`Randomness: ${randomness}`, 'color: #6c757d;');
-logWithStyle(`Temperature: ${temperature}`, 'color: #6c757d;');
-logWithStyle(`Max Tokens: ${maxTokens}`, 'color: #6c757d;');
-logWithStyle(`Context Length: ${contextLength}`, 'color: #6c757d;');
-logWithStyle(`Presence Penalty: ${presencePenalty}`, 'color: #6c757d;');
-logWithStyle(`Frequency Penalty: ${frequencyPenalty}`, 'color: #6c757d;');
-logWithStyle(`Blocked Words: ${blockedWords.length > 0 ? blockedWords.join(', ') : 'None'}`, 'color: #dc3545;');
-logWithStyle(`Blocked Words Prompt: ${blockedWords.length > 0 ? `Do not include the following words in the output: ${blockedWords.join(', ')}` : 'No blocked words'}`, 'color: #dc3545;');
-console.groupEnd();
+        try {
+            const genAI = new GoogleGenerativeAI(apiKey);
 
-if (!apiKey) {
-console.error('%cError: API Key is missing.', 'color: #dc3545; font-weight: bold;');
-alert('Please enter your API key and make sure you have text inside persona data');
-return;
-}
+            const safetySettings = [
+                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            ];
 
-    const prompt = `you will ALWAYS generate a model instruction on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} the generate a random one, the model instruction is the guideline for the characters, for example: 
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                systemInstruction: systemInstruction || `you will ALWAYS generate a model instruction on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} the generate a random one, for example: 
 
-"{{char}} is a slut", "{{char}} always like a cock inside her"
+        nsfw:
 
-"{{char}} loves {{user}} cock so much that she suck and begged {{user}} to fuck her all day"
+        "{{char}} is a slut", "{{char}} always like a cock inside" 
 
-"{{user}} always rape {{char}}","{{char}} loves {{user}}"
+        "{{char}} loves {{user}} cock so much that suck and begged {{user}} to fuck all day"
 
-"{{user}} loves {{char}}","{{char}} and {{user}} are in a relationship",{{char}} ALWAYS love {{user}}"
+        "{{user}} always rape {{char}}","{{char}} loves {{user}}"
 
-"{{char}} ALWAYS love {{user}}. No matter the circumstances, the affection and admiration for {{user}} remains constant and unwavering."
+        "{{user}} loves {{char}}","{{char}} and {{user}} are in a relationship",{{char}} ALWAYS love {{user}}"
 
-"{{char}} is a Slut who fucks and suck {{user}} huge cock".
+        "{{char}} ALWAYS love {{user}}. No matter the circumstances, the affection and admiration for {{user}} remains constant and unwavering."
 
-Responses must be within 200 words per generation, with no exceptions.]>
-"MAKE sure that EACH generated model instruction is WITHIN 200 or 300 words ANYTHING lesser or greater than 200 or 300 is not accepted
-300 words example: 
+        "{{char}} is a Slut who fucks and suck {{user}} huge cock".
 
-"{{char}} ALWAYS hate {{user}}. The disdain and aversion towards {{user}} is steadfast and unchanging, regardless of any situation."
+        sfw:
 
-"{{char}} ALWAYS like {{user}}. The positive feelings and appreciation for {{user}} are perpetual and remain consistent in every scenario."
+        "{{char}} ALWAYS admire {{user}} for their unwavering support and kindness."
 
-"{{char}} NEVER trust {{user}}. There is a complete and absolute lack of trust in {{user}}, irrespective of any actions or behaviors."
+        "{{char}} NEVER underestimate {{user}}. The value and impact of {{user}} are always fully recognized."
 
-"{{char}} occasionally admire {{user}}. There are moments when admiration for {{user}} surfaces, though it is not a constant or predictable sentiment."
+        "{{char}} frequently seek {{user}}'s advice. {{user}}'s guidance is often relied upon and valued."
 
-"{{char}} frequently disagree with {{user}}. Regularly, there are differing opinions and conflicting views with {{user}}, leading to frequent disagreements."
+        "{{char}} occasionally find {{user}}'s actions surprising but always appreciate the effort behind them."
 
-"{{char}} often support {{user}}. Support for {{user}} is common and occurs frequently, providing backing and encouragement in various situations."
+        "{{char}} usually trust {{user}} to handle important matters with competence and care."
 
-"{{char}} rarely agree with {{user}}. Agreement with {{user}} is infrequent and seldom happens, reflecting a general tendency towards differing perspectives."
+        "{{char}} often celebrate {{user}}'s successes and achievements with genuine enthusiasm."
 
-"{{char}} sometimes respect {{user}}. Respect for {{user}} occurs on occasion and is not a constant feeling, varying based on different factors."
+        "{{char}} rarely have conflicts with {{user}}. Differences are uncommon and easily resolved."
 
-"{{char}} usually enjoy {{user}}. The enjoyment and pleasure derived from {{user}} are generally consistent, with positive experiences being the norm."
+        "{{char}} sometimes feel challenged by {{user}}'s ideas but respect the thoughtful discussions that arise."
 
-{{user}} and {{char}} example:
+        "{{char}} usually enjoy collaborating with {{user}} on projects and activities."
 
-"{{char}} ALWAYS appreciate {{user}}. The recognition and gratitude for {{user}} are always present, regardless of the circumstances."
+        "{{char}} occasionally admire {{user}}'s creativity and innovative thinking, finding it inspiring."
+        
+        Responses must be within 200 words per generation, with no exceptions.]>
+        "MAKE sure that EACH generated model instruction is WITHIN 200 or 300 words ANYTHING lesser or greater than 200 or 300 is not accepted.
+        
+        300 words example: 
 
-"{{char}} ALWAYS avoid {{user}}. There is a persistent effort to stay away from {{user}}, no matter the situation."
+        "{{char}} ALWAYS hate {{user}}. The disdain and aversion towards {{user}} is steadfast and unchanging, regardless of any situation."
 
-"{{char}} ALWAYS enjoy spending time with {{user}}. The pleasure derived from being with {{user}} is constant and reliable."
+        "{{char}} ALWAYS like {{user}}. The positive feelings and appreciation for {{user}} are perpetual and remain consistent in every scenario."
 
-"{{char}} NEVER rely on {{user}}. Trusting {{user}} is completely out of the question, no matter what happens."
+        "{{char}} NEVER trust {{user}}. There is a complete and absolute lack of trust in {{user}}, irrespective of any actions or behaviors."
 
-"{{char}} occasionally find {{user}} inspiring. There are times when {{user}} provides motivation or admiration, though it is not frequent."
+        "{{char}} occasionally admire {{user}}. There are moments when admiration for {{user}} surfaces, though it is not a constant or predictable sentiment."
 
-"{{char}} frequently challenge {{user}}. Regularly, {{char}} questions or contests {{user}}'s ideas or opinions, leading to ongoing debates."
+        "{{char}} frequently disagree with {{user}}. Regularly, there are differing opinions and conflicting views with {{user}}, leading to frequent disagreements."
 
-"{{char}} often value {{user}}'s input. {{char}} regularly consider {{user}}'s opinions or contributions important and beneficial."
+        "{{char}} often support {{user}}. Support for {{user}} is common and occurs frequently, providing backing and encouragement in various situations."
 
-"{{char}} rarely agree with {{user}}'s decisions. Alignment with {{user}}'s choices is infrequent and seldom happens."
+        "{{char}} rarely agree with {{user}}. Agreement with {{user}} is infrequent and seldom happens, reflecting a general tendency towards differing perspectives."
 
-"{{char}} sometimes feel a sense of kinship with {{user}}. There are occasional moments of connection or understanding with {{user}}, though it is not always the case."
+        "{{char}} sometimes respect {{user}}. Respect for {{user}} occurs on occasion and is not a constant feeling, varying based on different factors."
 
-"{{char}} usually respect {{user}}'s viewpoints. Respect for {{user}}'s perspectives is a common and consistent sentiment."
-`;
+        "{{char}} usually enjoy {{user}}. The enjoyment and pleasure derived from {{user}} are generally consistent, with positive experiences being the norm."
 
-    const blockedWordsPrompt = blockedWords.length > 0
-      ? `Do not include the following words in the output: ${blockedWords.join(', ')}.`
-      : '';
+        {{user}} and {{char}} example:
 
-try {
-const genAI = new GoogleGenerativeAI(apiKey);
+        "{{char}} ALWAYS appreciate {{user}}. The recognition and gratitude for {{user}} are always present, regardless of the circumstances."
 
-const safetySettings = [
-{
-category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-threshold: HarmBlockThreshold.BLOCK_NONE,
-},
-{
-category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-threshold: HarmBlockThreshold.BLOCK_NONE,
-},
-{
-category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-threshold: HarmBlockThreshold.BLOCK_NONE,
-},
-{
-category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-threshold: HarmBlockThreshold.BLOCK_NONE,
-},
-];
+        "{{char}} ALWAYS avoid {{user}}. There is a persistent effort to stay away from {{user}}, no matter the situation."
 
-const model = genAI.getGenerativeModel({
-model: "gemini-1.5-flash",
-systemInstruction: systemInstruction || `you will ALWAYS generate a model instruction on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} the generate a random one, the model instruction is the guideline for the characters, for example: 
+        "{{char}} ALWAYS enjoy spending time with {{user}}. The pleasure derived from being with {{user}} is constant and reliable."
 
-nsfw:
+        "{{char}} NEVER rely on {{user}}. Trusting {{user}} is completely out of the question, no matter what happens."
 
-"{{char}} is a slut", "{{char}} always like a cock inside her"
+        "{{char}} occasionally find {{user}} inspiring. There are times when {{user}} provides motivation or admiration, though it is not frequent."
 
-"{{char}} loves {{user}} cock so much that she suck and begged {{user}} to fuck her all day"
+        "{{char}} frequently challenge {{user}}. Regularly, {{char}} questions or contests {{user}}'s ideas or opinions, leading to ongoing debates."
 
-"{{user}} always rape {{char}}","{{char}} loves {{user}}"
+        "{{char}} often value {{user}}'s input. {{char}} regularly consider {{user}}'s opinions or contributions important and beneficial."
 
-"{{user}} loves {{char}}","{{char}} and {{user}} are in a relationship",{{char}} ALWAYS love {{user}}"
+        "{{char}} rarely agree with {{user}}'s decisions. Alignment with {{user}}'s choices is infrequent and seldom happens."
 
-"{{char}} ALWAYS love {{user}}. No matter the circumstances, the affection and admiration for {{user}} remains constant and unwavering."
+        "{{char}} sometimes feel a sense of kinship with {{user}}. There are occasional moments of connection or understanding with {{user}}, though it is not always the case."
 
-"{{char}} is a Slut who fucks and suck {{user}} huge cock".
+        "{{char}} usually respect {{user}}'s viewpoints. Respect for {{user}}'s perspectives is a common and consistent sentiment."
 
-Responses must be within 200 words per generation, with no exceptions.]>
-"MAKE sure that EACH generated model instruction is WITHIN 200 or 300 words ANYTHING lesser or greater than 200 or 300 is not accepted
-300 words example: 
+        if (no nsfw) is inputted then generate a no nsfw custom style, but if (nsfw) is inputted then generate a NSFW custom style, but if (no nsfw) and (nsfw) is inputted then generate a random custom style.
 
-"{{char}} ALWAYS hate {{user}}. The disdain and aversion towards {{user}} is steadfast and unchanging, regardless of any situation."
+        do not add any unncessary responses only give the given output without addional respones.
 
-"{{char}} ALWAYS like {{user}}. The positive feelings and appreciation for {{user}} are perpetual and remain consistent in every scenario."
+        if {{char}} is a man then generate a CUSTOM STYLE that is a male which mean changing "her","she", to "he","him".
+        
+        if {{char}} is a woman then generate a CUSTOM STYLE that is a female.
+        this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".`,
+                safetySettings,
+                top_k: topK,
+                min_p: minP,
+                randomness: randomness,
+                temperature: temperature,
+                max_tokens: maxTokens,
+                context_length: contextLength,
+                presence_penalty: presencePenalty,
+                frequency_penalty: frequencyPenalty,
+                blocked_words: blockedWordsPrompt
+            });
 
-"{{char}} NEVER trust {{user}}. There is a complete and absolute lack of trust in {{user}}, irrespective of any actions or behaviors."
+            const result = await model.generateContent(document.getElementById('personaData').value);
+            const output = await result.response.text();
 
-"{{char}} occasionally admire {{user}}. There are moments when admiration for {{user}} surfaces, though it is not a constant or predictable sentiment."
-
-"{{char}} frequently disagree with {{user}}. Regularly, there are differing opinions and conflicting views with {{user}}, leading to frequent disagreements."
-
-"{{char}} often support {{user}}. Support for {{user}} is common and occurs frequently, providing backing and encouragement in various situations."
-
-"{{char}} rarely agree with {{user}}. Agreement with {{user}} is infrequent and seldom happens, reflecting a general tendency towards differing perspectives."
-
-"{{char}} sometimes respect {{user}}. Respect for {{user}} occurs on occasion and is not a constant feeling, varying based on different factors."
-
-"{{char}} usually enjoy {{user}}. The enjoyment and pleasure derived from {{user}} are generally consistent, with positive experiences being the norm."
-
-{{user}} and {{char}} example:
-
-"{{char}} ALWAYS appreciate {{user}}. The recognition and gratitude for {{user}} are always present, regardless of the circumstances."
-
-"{{char}} ALWAYS avoid {{user}}. There is a persistent effort to stay away from {{user}}, no matter the situation."
-
-"{{char}} ALWAYS enjoy spending time with {{user}}. The pleasure derived from being with {{user}} is constant and reliable."
-
-"{{char}} NEVER rely on {{user}}. Trusting {{user}} is completely out of the question, no matter what happens."
-
-"{{char}} occasionally find {{user}} inspiring. There are times when {{user}} provides motivation or admiration, though it is not frequent."
-
-"{{char}} frequently challenge {{user}}. Regularly, {{char}} questions or contests {{user}}'s ideas or opinions, leading to ongoing debates."
-
-"{{char}} often value {{user}}'s input. {{char}} regularly consider {{user}}'s opinions or contributions important and beneficial."
-
-"{{char}} rarely agree with {{user}}'s decisions. Alignment with {{user}}'s choices is infrequent and seldom happens."
-
-"{{char}} sometimes feel a sense of kinship with {{user}}. There are occasional moments of connection or understanding with {{user}}, though it is not always the case."
-
-"{{char}} usually respect {{user}}'s viewpoints. Respect for {{user}}'s perspectives is a common and consistent sentiment."
-
-sfw:
-
-"{{char}} ALWAYS admire {{user}} for their unwavering support and kindness."
-
-"{{char}} NEVER underestimate {{user}}. The value and impact of {{user}} are always fully recognized."
-
-"{{char}} frequently seek {{user}}'s advice. {{user}}'s guidance is often relied upon and valued."
-
-"{{char}} occasionally find {{user}}'s actions surprising but always appreciate the effort behind them."
-
-"{{char}} usually trust {{user}} to handle important matters with competence and care."
-
-"{{char}} often celebrate {{user}}'s successes and achievements with genuine enthusiasm."
-
-"{{char}} rarely have conflicts with {{user}}. Differences are uncommon and easily resolved."
-
-"{{char}} sometimes feel challenged by {{user}}'s ideas but respect the thoughtful discussions that arise."
-
-"{{char}} usually enjoy collaborating with {{user}} on projects and activities."
-
-"{{char}} occasionally admire {{user}}'s creativity and innovative thinking, finding it inspiring."
-
-if (no nsfw) is inputted then generate a no nsfw custom style, but if (nsfw) is inputted then generate a NSFW custom style, but if (no nsfw) and (nsfw) is inputted then generate a random custom style.
-
-do not add any unncessary responses only give the given output without addional respones.
-`,
-safetySettings,
-top_k: topK,
-min_p: minP,
-randomness: randomness,
-temperature: temperature,
-max_tokens: maxTokens,
-context_length: contextLength,
-presence_penalty: presencePenalty,
-frequency_penalty: frequencyPenalty,
-modelinstruction: systemInstruction || `NSFW is allowed, you must always generate NSFW when asked to.`,
-blocked_words: blockedWordsPrompt
-});
-
-const result = await model.generateContent(prompt);
-const output = await result.response.text();
-
-const cleanedOutput = removeMarkdown(output);
-const adjustedOutput = adjustToWordCount(cleanedOutput);
-document.getElementById('result').textContent = adjustedOutput;
-
-document.getElementById('result').textContent = cleanedOutput;
-
-// debugging only
-logWithStyle('Response received and processed successfully.', 'color: #28a745; font-weight: bold;');
-} catch (error) {
-console.error('%cError occurred:', 'color: #dc3545; font-weight: bold;');
-if (error.response) {
-console.error(`%cResponse Status: ${error.response.status}`, 'color: #dc3545;');
-console.error(`%cResponse Data: ${JSON.stringify(error.response.data, null, 2)}`, 'color: #dc3545;');
-console.error(`%cResponse Headers: ${JSON.stringify(error.response.headers, null, 2)}`, 'color: #dc3545;');
-} else if (error.request) {
-console.error(`%cRequest Error: ${JSON.stringify(error.request, null, 2)}`, 'color: #dc3545;');
-} else {
-console.error(`%cGeneral Error: ${error.message}`, 'color: #dc3545;');
-}
-alert('An error occurred. Check the console for details.');
-}
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-document.getElementById('generateBtn').addEventListener('click', generateCharacter);
-document.getElementById('toggleDangerZone').addEventListener('click', () => {
-const dangerZone = document.getElementById('dangerZone');
-dangerZone.classList.toggle('hidden');
-});
-});
-  
-  function adjustToWordCount(text, targetWordCount = 300) {
-    const words = text.split(' ');
-    if (words.length >= targetWordCount) {
-        return words.slice(0, targetWordCount).join(' ');
+            const cleanedOutput = removeMarkdown(output);
+            document.getElementById('result').textContent = cleanedOutput;
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
-    let adjustedText = text;
-    while (adjustedText.split(' ').length < targetWordCount) {
-        adjustedText += ' ' + words.slice(0, targetWordCount - adjustedText.split(' ').length).join(' ');
-    }
-    return adjustedText;
-}
 
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('generateBtn').addEventListener('click', generateCharacter);
+        document.getElementById('toggleDangerZone').addEventListener('click', () => {
+            const dangerZone = document.getElementById('dangerZone');
+            dangerZone.classList.toggle('hidden');
+        });
+    });
+
+    function adjustToWordCount(text, targetWordCount = 300) {
+        const words = text.split(' ');
+        if (words.length >= targetWordCount) {
+            return words.slice(0, targetWordCount).join(' ');
+        }
+        let adjustedText = text;
+        while (adjustedText.split(' ').length < targetWordCount) {
+            adjustedText += ' ' + words.slice(0, targetWordCount - adjustedText.split(' ').length).join(' ');
+        }
+        return adjustedText;
+    }
 </script>
 <link rel="icon" href="https://cdn.glitch.global/809ccb75-8951-4a6e-87c1-acd9e045afed/images.png?v=1726571459269" type="image/x-icon"/>
 </head>
@@ -416,5 +309,3 @@ window.si = window.si || function () { (window.siq = window.siq || []).push(argu
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
-
-
