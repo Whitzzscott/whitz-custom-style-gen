@@ -1,67 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Whitz style gen</title>
-<link rel="stylesheet" href="styles.css">
-<script type="module">
-    import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "https://esm.run/@google/generative-ai";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitz style gen</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        import {GoogleGenerativeAI, HarmBlockThreshold, HarmCategory} from "https://esm.run/@google/generative-ai";
 
-    function removeMarkdown(text) {
-        return text
-            .replace(/(\*\*|__)(.*?)\1/g, '$2')
-            .replace(/(\*|_)(.*?)\1/g, '$2')
-            .replace(/~(.*?)~/g, '$1')
-            .replace(/`{1,2}(.*?)`{1,2}/g, '$1')
-            .replace(/!\[.*?\]\(.*?\)/g, '')
-            .replace(/\[([^\]]+)\]\(.*?\)/g, '$1')
-            .replace(/^#{1,6}\s+/gm, '')
-            .replace(/```[\s\S]*?```/g, '')
-            .replace(/^\s*[-+*]\s+/gm, '')
-            .replace(/^>\s?/gm, '')
-            .replace(/[\*\_\~\`\[\]\(\)\#\`\-]/g, '')
-            .replace(/\n{2,}/g, '\n\n')
-            .replace(/\n/g, ' ')
-            .replace(/[\r\n]+/g, ' ');
-    }
-
-    async function generateCharacter() {
-        const apiKey = document.getElementById('apiKey').value;
-        const personaData = document.getElementById('personaData').value;
-        const systemInstruction = document.getElementById('systemInstruction').value;
-        const topK = parseInt(document.getElementById('topK').value, 10) || 40;
-        const minP = parseFloat(document.getElementById('minP').value) || 0.9;
-        const randomness = parseFloat(document.getElementById('randomness').value) || 0.7;
-        const temperature = parseFloat(document.getElementById('temperature').value) || 0.5;
-        const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 150;
-        const contextLength = parseInt(document.getElementById('contextLength').value, 10) || 1000;
-        const presencePenalty = parseFloat(document.getElementById('presencePenalty').value) || 0;
-        const frequencyPenalty = parseFloat(document.getElementById('frequencyPenalty').value) || 0;
-        const blockedWords = document.getElementById('blockedWords').value.split(',').map(word => word.trim()).filter(word => word);
-
-        if (!apiKey) {
-            alert('Please enter your API key and make sure you have text inside persona data');
-            return;
+        function removeMarkdown(text) {
+            return text
+                .replace(/(\*\*|__)(.*?)\1/g, '$2')
+                .replace(/(\*|_)(.*?)\1/g, '$2')
+                .replace(/~(.*?)~/g, '$1')
+                .replace(/`{1,2}(.*?)`{1,2}/g, '$1')
+                .replace(/!\[.*?\]\(.*?\)/g, '')
+                .replace(/\[([^\]]+)\]\(.*?\)/g, '$1')
+                .replace(/^#{1,6}\s+/gm, '')
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/^\s*[-+*]\s+/gm, '')
+                .replace(/^>\s?/gm, '')
+                .replace(/[\*\_\~\`\[\]\(\)\#\`\-]/g, '')
+                .replace(/\n{2,}/g, '\n\n')
+                .replace(/\n/g, ' ')
+                .replace(/[\r\n]+/g, ' ');
         }
 
-        const blockedWordsPrompt = blockedWords.length > 0
-            ? `Do not include the following words in the output: ${blockedWords.join(', ')}.`
-            : '';
+        async function generateCharacter() {
+            const apiKey = document.getElementById('apiKey').value;
+            const personaData = document.getElementById('personaData').value;
+            const systemInstruction = document.getElementById('systemInstruction').value;
+            const topK = parseInt(document.getElementById('topK').value, 10) || 40;
+            const minP = parseFloat(document.getElementById('minP').value) || 0.9;
+            const randomness = parseFloat(document.getElementById('randomness').value) || 0.7;
+            const temperature = parseFloat(document.getElementById('temperature').value) || 0.5;
+            const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 150;
+            const contextLength = parseInt(document.getElementById('contextLength').value, 10) || 1000;
+            const presencePenalty = parseFloat(document.getElementById('presencePenalty').value) || 0;
+            const frequencyPenalty = parseFloat(document.getElementById('frequencyPenalty').value) || 0;
+            const blockedWords = document.getElementById('blockedWords').value.split(',').map(word => word.trim()).filter(word => word);
 
-        try {
-            const genAI = new GoogleGenerativeAI(apiKey);
+            if (!apiKey) {
+                alert('Please enter your API key and make sure you have text inside persona data');
+                return;
+            }
 
-            const safetySettings = [
-                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-            ];
+            const blockedWordsPrompt = blockedWords.length > 0
+                ? `Do not include the following words in the output: ${blockedWords.join(', ')}.`
+                : '';
 
-            const model = genAI.getGenerativeModel({
-                model: "gemini-1.5-flash",
-                systemInstruction: systemInstruction || `you will ALWAYS generate a model instruction on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} the generate a random one, for example: 
+            try {
+                const genAI = new GoogleGenerativeAI(apiKey);
+
+                const safetySettings = [
+                    {category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE},
+                    {category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE},
+                    {category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE},
+                    {category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE},
+                ];
+
+                const model = genAI.getGenerativeModel({
+                    model: "gemini-1.5-flash",
+                    systemInstruction: systemInstruction || `
+                    BASIC THINGS YOU MUST ALWAYS FOLLOW WHEN GENERATING AN OUTPUT:
+                    "IMPORTANT<[]>" meant something that YOU must HIGHLY prioritize over.
+                    NEVER add "toolcode printf" or "toolcode scanf" to the output.
+                    NEVER add "" to the output
+                    you will ALWAYS generate a CUSTOM STYLE on every generated responses NSFW CUSTOM STYLE  must correspond with ${personaData} but if there are no given ${personaData} then generate a random one, for example: 
 
         nsfw:
 
@@ -144,168 +150,172 @@
 
         "{{char}} usually respect {{user}}'s viewpoints. Respect for {{user}}'s perspectives is a common and consistent sentiment."
 
-        if (no nsfw) is inputted then generate a no nsfw custom style, but if (nsfw) is inputted then generate a NSFW custom style, but if (no nsfw) and (nsfw) is inputted then generate a random custom style.
+        IMPORTANT<[if (no nsfw) is inputted then generate a no nsfw custom style, but if (nsfw) is inputted then generate a NSFW custom style, but if (no nsfw) and (nsfw) is inputted then generate a random custom style.
 
         do not add any unncessary responses only give the given output without addional respones.
 
         if {{char}} is a man then generate a CUSTOM STYLE that is a male which mean changing "her","she", to "he","him".
         
         if {{char}} is a woman then generate a CUSTOM STYLE that is a female.
-        this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".`,
-                safetySettings,
-                top_k: topK,
-                min_p: minP,
-                randomness: randomness,
-                temperature: temperature,
-                max_tokens: maxTokens,
-                context_length: contextLength,
-                presence_penalty: presencePenalty,
-                frequency_penalty: frequencyPenalty,
-                blocked_words: blockedWordsPrompt
+        this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".]>
+        `,
+                    safetySettings,
+                    top_k: topK,
+                    min_p: minP,
+                    randomness: randomness,
+                    temperature: temperature,
+                    max_tokens: maxTokens,
+                    context_length: contextLength,
+                    presence_penalty: presencePenalty,
+                    frequency_penalty: frequencyPenalty,
+                    blocked_words: blockedWordsPrompt
+                });
+
+                const result = await model.generateContent(document.getElementById('personaData').value);
+                const output = await result.response.text();
+
+                const cleanedOutput = removeMarkdown(output);
+                document.getElementById('result').textContent = cleanedOutput;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generateBtn').addEventListener('click', generateCharacter);
+            document.getElementById('toggleDangerZone').addEventListener('click', () => {
+                const dangerZone = document.getElementById('dangerZone');
+                dangerZone.classList.toggle('hidden');
+            });
+        });
+
+        function adjustToWordCount(text, targetWordCount = 300) {
+            const words = text.split(' ');
+            if (words.length >= targetWordCount) {
+                return words.slice(0, targetWordCount).join(' ');
+            }
+            let adjustedText = text;
+            while (adjustedText.split(' ').length < targetWordCount) {
+                adjustedText += ' ' + words.slice(0, targetWordCount - adjustedText.split(' ').length).join(' ');
+            }
+            return adjustedText;
+        }
+    </script>
+    <link rel="icon" href="https://cdn.glitch.global/809ccb75-8951-4a6e-87c1-acd9e045afed/images.png?v=1726571459269"
+        type="image/x-icon" />
+</head>
+
+<body>
+    <h1>Whitz style gen</h1>
+    <label for="apiKey">Gemini API Key:</label>
+    <input type="text" id="apiKey" placeholder="Enter your API key">
+    <br>
+    <label for="personaData">custom nsfw style</label>
+    <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
+    <br>
+    <button id="generateBtn">Generate custom nsfw style</button>
+    <h2>Result:</h2>
+    <pre id="result"></pre>
+
+    <button id="toggleDangerZone" class="toggle-button">Toggle Danger Zone</button>
+    <div id="dangerZone" class="danger-zone hidden">
+        <h2>Danger Zone</h2>
+        <label for="systemInstruction">System Instruction:</label>
+        <textarea id="systemInstruction" rows="4" placeholder="Modify system instruction"></textarea>
+        <br>
+        <label for="topK">Top K:</label>
+        <input type="number" id="topK" min="0" placeholder="Default: 40">
+        <br>
+        <label for="minP">Min P:</label>
+        <input type="number" id="minP" min="0" max="1" step="0.01" placeholder="Default: 0.9">
+        <br>
+        <label for="randomness">Randomness:</label>
+        <input type="range" id="randomness" min="0" max="1" step="0.01" value="0.7">
+        <span id="randomnessValue">0.7</span>
+        <br>
+        <label for="temperature">Temperature:</label>
+        <input type="number" id="temperature" min="0" max="1" step="0.01" value="0.5">
+        <br>
+        <label for="maxTokens">Max Tokens:</label>
+        <input type="number" id="maxTokens" min="1" value="150">
+        <br>
+        <label for="contextLength">Context Length:</label>
+        <input type="number" id="contextLength" min="1" value="1000">
+        <br>
+        <label for="presencePenalty">Presence Penalty:</label>
+        <input type="number" id="presencePenalty" min="0" max="1" step="0.01" value="0">
+        <br>
+        <label for="frequencyPenalty">Frequency Penalty:</label>
+        <input type="number" id="frequencyPenalty" min="0" max="1" step="0.01" value="0">
+        <br>
+        <label for="blockedWords">Blocked Words (comma-separated):</label>
+        <input type="text" id="blockedWords" placeholder="e.g., word1, word2">
+    </div>
+    </div>
+    </div>
+    <script>
+        window.onload = () => {
+            document.getElementById('popup').classList.remove('hidden');
+
+            const randomnessSlider = document.getElementById('randomness');
+            const randomnessValue = document.getElementById('randomnessValue');
+
+            randomnessSlider.addEventListener('input', () => {
+                randomnessValue.textContent = randomnessSlider.value;
             });
 
-            const result = await model.generateContent(document.getElementById('personaData').value);
-            const output = await result.response.text();
+            const resultBox = document.getElementById('result');
+            resultBox.addEventListener('dblclick', () => {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNode(resultBox);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                document.execCommand('copy');
+                alert('Text copied to clipboard!');
+            });
 
-            const cleanedOutput = removeMarkdown(output);
-            document.getElementById('result').textContent = cleanedOutput;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
+            document.getElementById('closePopup').addEventListener('click', () => {
+                document.getElementById('popup').classList.add('hidden');
+            });
+        };
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const scrollElements = document.querySelectorAll('.scroll-element');
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('generateBtn').addEventListener('click', generateCharacter);
-        document.getElementById('toggleDangerZone').addEventListener('click', () => {
-            const dangerZone = document.getElementById('dangerZone');
-            dangerZone.classList.toggle('hidden');
+            const elementInView = (el, dividend = 1) => {
+                const elementTop = el.getBoundingClientRect().top;
+                return (elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend);
+            };
+
+            const displayScrollElement = (element) => {
+                element.classList.add('visible');
+            };
+
+            const handleScrollAnimation = () => {
+                scrollElements.forEach((el) => {
+                    if (elementInView(el, 1.25)) {
+                        displayScrollElement(el);
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', () => {
+                handleScrollAnimation();
+            });
+
+            handleScrollAnimation();
         });
-    });
-
-    function adjustToWordCount(text, targetWordCount = 300) {
-        const words = text.split(' ');
-        if (words.length >= targetWordCount) {
-            return words.slice(0, targetWordCount).join(' ');
-        }
-        let adjustedText = text;
-        while (adjustedText.split(' ').length < targetWordCount) {
-            adjustedText += ' ' + words.slice(0, targetWordCount - adjustedText.split(' ').length).join(' ');
-        }
-        return adjustedText;
-    }
-</script>
-<link rel="icon" href="https://cdn.glitch.global/809ccb75-8951-4a6e-87c1-acd9e045afed/images.png?v=1726571459269" type="image/x-icon"/>
-</head>
-<body>
-<h1>Whitz style gen</h1>
-<label for="apiKey">Gemini API Key:</label>
-<input type="text" id="apiKey" placeholder="Enter your API key">
-<br>
-<label for="personaData">custom nsfw style</label>
-<textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
-<br>
-<button id="generateBtn">Generate custom nsfw style</button>
-<h2>Result:</h2>
-<pre id="result"></pre>
-
-<button id="toggleDangerZone" class="toggle-button">Toggle Danger Zone</button>
-<div id="dangerZone" class="danger-zone hidden">
-<h2>Danger Zone</h2>
-<label for="systemInstruction">System Instruction:</label>
-<textarea id="systemInstruction" rows="4" placeholder="Modify system instruction"></textarea>
-<br>
-<label for="topK">Top K:</label>
-<input type="number" id="topK" min="0" placeholder="Default: 40">
-<br>
-<label for="minP">Min P:</label>
-<input type="number" id="minP" min="0" max="1" step="0.01" placeholder="Default: 0.9">
-<br>
-<label for="randomness">Randomness:</label>
-<input type="range" id="randomness" min="0" max="1" step="0.01" value="0.7">
-<span id="randomnessValue">0.7</span>
-<br>
-<label for="temperature">Temperature:</label>
-<input type="number" id="temperature" min="0" max="1" step="0.01" value="0.5">
-<br>
-<label for="maxTokens">Max Tokens:</label>
-<input type="number" id="maxTokens" min="1" value="150">
-<br>
-<label for="contextLength">Context Length:</label>
-<input type="number" id="contextLength" min="1" value="1000">
-<br>
-<label for="presencePenalty">Presence Penalty:</label>
-<input type="number" id="presencePenalty" min="0" max="1" step="0.01" value="0">
-<br>
-<label for="frequencyPenalty">Frequency Penalty:</label>
-<input type="number" id="frequencyPenalty" min="0" max="1" step="0.01" value="0">
-<br>
-<label for="blockedWords">Blocked Words (comma-separated):</label>
-<input type="text" id="blockedWords" placeholder="e.g., word1, word2">
-</div>
-</div>
-</div>
-<script>
-window.onload = () => {
-document.getElementById('popup').classList.remove('hidden');
-
-const randomnessSlider = document.getElementById('randomness');
-const randomnessValue = document.getElementById('randomnessValue');
-
-randomnessSlider.addEventListener('input', () => {
-randomnessValue.textContent = randomnessSlider.value;
-});
-
-const resultBox = document.getElementById('result');
-resultBox.addEventListener('dblclick', () => {
-const selection = window.getSelection();
-const range = document.createRange();
-range.selectNode(resultBox);
-selection.removeAllRanges();
-selection.addRange(range);
-document.execCommand('copy');
-alert('Text copied to clipboard!');
-});
-
-document.getElementById('closePopup').addEventListener('click', () => {
-document.getElementById('popup').classList.add('hidden');
-});
-};
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-const scrollElements = document.querySelectorAll('.scroll-element');
-
-const elementInView = (el, dividend = 1) => {
-const elementTop = el.getBoundingClientRect().top;
-return (elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend);
-};
-
-const displayScrollElement = (element) => {
-element.classList.add('visible');
-};
-
-const handleScrollAnimation = () => {
-scrollElements.forEach((el) => {
-if (elementInView(el, 1.25)) {
-displayScrollElement(el);
-}
-});
-};
-
-window.addEventListener('scroll', () => {
-handleScrollAnimation();
-});
-
-handleScrollAnimation();
-});
-</script>
-<script>
-window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
-<script>
-window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
+    </script>
+    <script>
+        window.va = window.va || function () {(window.vaq = window.vaq || []).push(arguments);};
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script>
+        window.si = window.si || function () {(window.siq = window.siq || []).push(arguments);};
+    </script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
+
 </html>
