@@ -27,14 +27,14 @@
                 .replace(/[\r\n]+/g, ' ');
         }
 
-        let mResult = ''; 
+        let mResult = null;
 
 async function fetchContent() {
     try {
         const generateBtn = document.getElementById('generateBtn');
         if (!generateBtn) return;
 
-        const personaDataValue = document.getElementById('apilinks').value;
+        const personaDataValue = document.getElementById('personaData').value;
         if (!personaDataValue) {
             console.error('No URL or data provided.');
             return;
@@ -58,11 +58,11 @@ async function fetchContent() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         mResult = await response.json();
         console.log('Fetched data:', mResult);
 
-        if (mResult.cleaned_content) {
+        if (mResult && mResult.cleaned_content) {
             const data = mResult.cleaned_content;
         } else {
             console.error('No cleaned content returned');
@@ -74,10 +74,7 @@ async function fetchContent() {
         generateBtn.disabled = false;
     }
 }
-
 document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
-
-
         async function generateCharacter() {
             const LinkExtracted = mResult.cleaned_content;
             const apikey = localStorage.getItem('apiKey') || document.getElementById('apiKey').value;
@@ -206,8 +203,7 @@ document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
         
         if {{char}} is a woman then generate a CUSTOM STYLE that is a female.
         this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".]>
-                    `,
-                    data: `CREATE THE FOLLOWING CHARACTER: ${LinkExtracted}`,
+        `,
                     safetySettings,
                     top_k: topK,
                     min_p: minP,
@@ -268,7 +264,6 @@ document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
     <label for="personaData">custom nsfw style</label>
     <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
     <br>
-    <textarea id="apilinks" rows="6" placeholder="Add Wiki Links here"></textarea>
     <button id="generateBtn">Generate custom nsfw style</button>
     <h2>Result:</h2>
     <pre id="result"></pre>
