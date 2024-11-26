@@ -34,7 +34,7 @@ async function fetchContent() {
         const generateBtn = document.getElementById('generateBtn');
         if (!generateBtn) return;
 
-        const personaDataValue = document.getElementById('personaData').value;
+        const personaDataValue = document.getElementById('apilinks').value;
         if (!personaDataValue) {
             console.error('No URL or data provided.');
             return;
@@ -206,9 +206,9 @@ document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
         
         if {{char}} is a woman then generate a CUSTOM STYLE that is a female.
         this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".]>
-        `,
+                    `,
+                    data: `CREATE THE FOLLOWING CHARACTER: ${LinkExtracted}`,
                     safetySettings,
-                    data: LinkExtracted,
                     top_k: topK,
                     min_p: minP,
                     randomness: randomness,
@@ -268,6 +268,7 @@ document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
     <label for="personaData">custom nsfw style</label>
     <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
     <br>
+    <textarea id="apilinks" rows="6" placeholder="Add Wiki Links here"></textarea>
     <button id="generateBtn">Generate custom nsfw style</button>
     <h2>Result:</h2>
     <pre id="result"></pre>
