@@ -27,6 +27,8 @@
                 .replace(/[\r\n]+/g, ' ');
         }
 
+        let mResult = ''; 
+
 async function fetchContent() {
     try {
         const generateBtn = document.getElementById('generateBtn');
@@ -72,8 +74,6 @@ async function fetchContent() {
         generateBtn.disabled = false;
     }
 }
-
-const mResult = '';
 
 document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
 
