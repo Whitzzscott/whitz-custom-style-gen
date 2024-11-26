@@ -57,7 +57,7 @@ async function fetchContent() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const mResult = await response.json();
+        mResult = await response.json();
         console.log('Fetched data:', mResult);
 
         if (mResult.cleaned_content) {
@@ -73,11 +73,13 @@ async function fetchContent() {
     }
 }
 
+const mResult = '';
+
 document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
 
 
         async function generateCharacter() {
-            const LinkExtracted = data;
+            const LinkExtracted = mResult.cleaned_content;
             const apikey = localStorage.getItem('apiKey') || document.getElementById('apiKey').value;
             localStorage.setItem('apiKey', document.getElementById('apiKey').value);
             const personaData = document.getElementById('personaData').value;
@@ -206,7 +208,7 @@ document.getElementById('generateBtn')?.addEventListener('click', fetchContent);
         this can be known if the input contain (male) or (female) which mean changing "he","him", to "she","her".]>
         `,
                     safetySettings,
-                    data: data,
+                    data: LinkExtracted,
                     top_k: topK,
                     min_p: minP,
                     randomness: randomness,
