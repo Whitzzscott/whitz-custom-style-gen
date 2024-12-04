@@ -263,7 +263,7 @@
     <br>
     <textarea id="linkparser" placeholder="Enter link to parse"></textarea>
 <textarea id="personaData" placeholder="Parsed content will appear here"></textarea>
-<button onclick="fetch('http://localhost:3000/parse', {
+<button onclick="fetch('/parse', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
