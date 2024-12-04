@@ -262,9 +262,8 @@
     </script>
     <br>
     <textarea id="linkparser" placeholder="Enter link to parse"></textarea>
-    <input type="text" id="linkparser" placeholder="Enter link to parse" />
 <textarea id="personaData" placeholder="Parsed content will appear here"></textarea>
-<button onclick="fetch('/parse', {
+<button onclick="fetch('http://localhost:3000/parse', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
@@ -285,7 +284,6 @@
     console.error('Error:', error);
     alert('Failed to parse link. Please try again.');
 })">Parse Link</button>
-
     <label for="personaData">custom nsfw style</label>
     <div style="position: relative; width: 100%; max-width: 600px;">
         <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
