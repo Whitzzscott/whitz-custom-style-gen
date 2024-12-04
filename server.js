@@ -1,13 +1,18 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
-
+import cors from 'cors';  // Import CORS
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
+// Enable CORS for all domains
+app.use(cors({
+    origin: '*',  // Allow all origins
+    methods: ['GET', 'POST'],  // Allow only specific methods
+}));
 
+app.use(express.json());
 app.use(express.static('public'));
 
 app.post('/parse', async (req, res) => {
@@ -24,7 +29,7 @@ app.post('/parse', async (req, res) => {
             }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const html = await response.text();
 
         const $ = cheerio.load(html);
