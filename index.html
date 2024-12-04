@@ -262,19 +262,30 @@
     </script>
     <br>
     <textarea id="linkparser" placeholder="Enter link to parse"></textarea>
-    <button onclick="fetch('/parse', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            link: document.getElementById('linkparser').value
-        })
-    }).then(response => response.json())
-      .then(data => {
-          document.getElementById('personaData').value = data.parsed_content;
-      })
-      .catch(error => console.error('Error:', error))">Parse Link</button>
+    <input type="text" id="linkparser" placeholder="Enter link to parse" />
+<textarea id="personaData" placeholder="Parsed content will appear here"></textarea>
+<button onclick="fetch('/parse', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        link: document.getElementById('linkparser').value
+    })
+}).then(response => {
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+})
+.then(data => {
+    document.getElementById('personaData').value = data.parsed_content;
+})
+.catch(error => {
+    console.error('Error:', error);
+    alert('Failed to parse link. Please try again.');
+})">Parse Link</button>
+
     <label for="personaData">custom nsfw style</label>
     <div style="position: relative; width: 100%; max-width: 600px;">
         <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
