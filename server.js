@@ -18,6 +18,13 @@ app.post('/parse', async (req, res) => {
         }
 
         const response = await fetch(link);
+        if (!response.ok) {
+            if (response.status === 404) {
+                return res.status(404).json({ error: 'NOT_FOUND' });
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const html = await response.text();
 
         const $ = cheerio.load(html);
