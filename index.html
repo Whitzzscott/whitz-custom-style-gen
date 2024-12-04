@@ -261,6 +261,8 @@
         });
     </script>
     <br>
+     <label for="systemInstruction">System Instruction:</label>
+        <textarea id="systemInstruction" rows="4" placeholder="Modify system instruction"></textarea>
     <textarea id="linkparser" placeholder="Enter link to parse"></textarea>
 <textarea id="personaData" placeholder="Parsed content will appear here"></textarea>
 <button onclick="fetch('https://asfsafsa-zck5.onrender.com/parse', {
@@ -312,8 +314,6 @@
     <button id="toggleDangerZone" class="toggle-button">Toggle Danger Zone</button>
     <div id="dangerZone" class="danger-zone hidden">
         <h2>Danger Zone</h2>
-        <label for="systemInstruction">System Instruction:</label>
-        <textarea id="systemInstruction" rows="4" placeholder="Modify system instruction"></textarea>
         <br>
         <label for="topK">Top K:</label>
         <input type="number" id="topK" min="0" placeholder="Default: 40">
