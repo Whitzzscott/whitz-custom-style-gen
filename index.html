@@ -261,9 +261,40 @@
         });
     </script>
     <br>
-    <textarea> link (UNDERWORK NOT YET WORKING) </textarea>
+    <textarea id="linkparser" placeholder="Enter link to parse"></textarea>
+    <button onclick="fetch('/parse', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            link: document.getElementById('linkparser').value
+        })
+    }).then(response => response.json())
+      .then(data => {
+          document.getElementById('personaData').value = data.parsed_content;
+      })
+      .catch(error => console.error('Error:', error))">Parse Link</button>
     <label for="personaData">custom nsfw style</label>
-    <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
+    <div style="position: relative; width: 100%; max-width: 600px;">
+        <textarea id="personaData" rows="6" placeholder="Example generate a model instruction for my characters"></textarea>
+        <button onclick="copyPersonaData()" style="position: absolute; top: 10px; right: 10px; background: black; border: none; cursor: pointer; padding: 5px; border-radius: 5px; transition: all 0.3s ease;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s ease;">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </button>
+    </div>
+    <script>
+        function copyPersonaData() {
+            const textarea = document.getElementById('personaData');
+            textarea.select();
+            document.execCommand('copy');
+            const btn = event.currentTarget;
+            btn.style.background = 'rgba(255,255,255,0.2)';
+            setTimeout(() => btn.style.background = 'black', 300);
+        }
+    </script>
     <br>
     <button id="generateBtn">Generate custom nsfw style</button>
     <h2>Result:</h2>
