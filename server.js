@@ -32,7 +32,7 @@ app.post('/parse', async (req, res) => {
         const seenContent = new Set();
         const commonWords = new Set(['login', 'sign up', 'register', 'password', 'email', 'username', 'cookie', 'terms', 'privacy', 'policy', 'menu', 'search']);
 
-        $('article, main, .content, .post, .entry').find('p, h1, h2, h3, h4, h5, h6').each((i, el) => {
+        $('article, main, .content, .post, .entry, body').find('p, h1, h2, h3, h4, h5, h6').each((i, el) => {
             const content = $(el).text().trim().toLowerCase();
             
             if (content.length < 5 || commonWords.has(content)) {
@@ -61,12 +61,17 @@ app.post('/parse', async (req, res) => {
         });
 
         text = text.trim();
+        
+        if (!text) {
+            return res.status(400).json({ error: 'No valid content found' });
+        }
 
         res.json({ 
-            parsed_content: text
+            parsed_content: text || 'No content found'
         });
 
     } catch (error) {
+        console.error('Parse error:', error);
         res.status(500).json({ 
             error: 'Failed to parse link',
             details: error.message
